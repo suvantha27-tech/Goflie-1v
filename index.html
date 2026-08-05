@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gofile - Cloud Storage Made Simple</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="logo">📁 Gofile</div>
+            <div class="user-info">
+                <span class="guest" id="userDisplay">guest9122398228</span>
+                <a href="#" id="authBtn" class="btn btn-outline">Add Account</a>
+            </div>
+            <nav>
+                <a href="#">Home</a>
+                <a href="#">Premium</a>
+                <a href="#">API</a>
+                <a href="#">FAQ</a>
+                <a href="#">Contact</a>
+                <span class="social">@gofile_io</span>
+            </nav>
+        </div>
+    </header>
+
+    <section class="hero">
+        <div class="container">
+            <h1>Cloud Storage Made Simple</h1>
+            <p>Gofile provides reliable, secure cloud storage for all your content needs. Store your files securely using our high-performance infrastructure, organize them easily, and share when needed. Perfect for personal archives, business data, or team collaboration.</p>
+            <div class="hero-buttons">
+                <a href="#" id="getStartedBtn" class="btn btn-primary">Get Started</a>
+                <a href="#" class="btn btn-secondary">File Manager</a>
+            </div>
+        </div>
+    </section>
+
+    <section class="features">
+        <div class="container">
+            <div class="feature-card">
+                <h3>📂 File Manager</h3>
+                <p>Organize and manage your stored content</p>
+                <ul>
+                    <li>Desktop App</li>
+                    <li>Synchronize files locally</li>
+                    <li>Available soon</li>
+                </ul>
+            </div>
+            <div class="feature-card highlight">
+                <h3>⬆ Drag & Drop or Click to Upload</h3>
+                <p>Quickly share your files and get a download link</p>
+                <div class="drop-zone" id="landingDropZone">
+                    <p>Drop files here or click to browse (Login required)</p>
+                    <input type="file" multiple id="landingFileInput" style="display:none">
+                </div>
+            </div>
+            <div class="feature-card">
+                <h3>💾 Storage</h3>
+                <p>Choose what works best for you: use our free temporary storage for quick shares, or upgrade to our reliable <strong>multi-region storage</strong> for long-term data.</p>
+            </div>
+            <div class="feature-card">
+                <h3>🌍 Distribution</h3>
+                <p>Share your content effortlessly, whether it's with a few friends or a global audience. Our high-performance CDN ensures quick downloads.</p>
+            </div>
+            <div class="feature-card">
+                <h3>⚙ Content Management</h3>
+                <p>Organize your files exactly how you want them. Our powerful file manager includes everything you need to manage multi-account, quick search, custom content, and integrate GoFile.</p>
+            </div>
+            <div class="feature-card">
+                <h3>🔗 API Access</h3>
+                <p>Take your file management to the next level with our developer-friendly API. Automate content management and integrate GoFile.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Dashboard (Hidden by default, shown after login) -->
+    <section id="dashboardSection" style="display:none; padding: 20px; max-width: 1200px; margin: 0 auto; width:100%;">
+        <h2>📁 My Files</h2>
+        <div class="drop-zone" id="dashDropZone" style="margin: 20px 0;">
+            <p>⬆ Drag & Drop files here or click to upload</p>
+            <input type="file" multiple id="dashFileInput" style="display:none">
+        </div>
+        <progress id="uploadProgress" value="0" max="100" style="width:100%;display:none; height:20px;"></progress>
+        <div id="fileList">
+            <table>
+              <thead><tr><th>Name</th><th>Size</th><th>Date</th><th>Actions</th></tr></thead>
+                <tbody id="fileTableBody"></tbody>
+            </table>
+        </div>
+        <button id="logoutBtn" style="margin-top:20px; padding:10px 20px; background:#f85149; border:none; color:white; border-radius:6px; cursor:pointer;">Logout</button>
+    </section>
+
+    <div class="keyboard-container">
+        <div class="keyboard">
+            <div class="row">
+                <span class="key">Esc</span>
+                <span class="key">1</span><span class="key">2</span><span class="key">3</span><span class="key">4</span><span class="key">5</span>
+                <span class="key">6</span><span class="key">7</span><span class="key">8</span><span class="key">9</span><span class="key">0</span>
+                <span class="key">.</span><span class="key">/</span><span class="key">;</span><span class="key">:</span><span class="key">(</span><span class="key">)</span>
+                <span class="key">_</span><span class="key">`</span><span class="key">~</span><span class="key">|</span><span class="key">\</span>
+            </div>
+            <div class="row">
+                <span class="key tab">Tab</span>
+                <span class="key">Q</span><span class="key">W</span><span class="key">E</span><span class="key">R</span><span class="key">T</span>
+                <span class="key">Y</span><span class="key">U</span><span class="key">I</span><span class="key">O</span><span class="key">P</span>
+                <span class="key">K</span><span class="key">L</span><span class="key">J</span><span class="key">H</span><span class="key">G</span>
+                <span class="key">F</span><span class="key">D</span><span class="key">S</span><span class="key">A</span><span class="key">Z</span>
+                <span class="key">X</span><span class="key">C</span><span class="key">V</span><span class="key">B</span><span class="key">N</span><span class="key">M</span>
+                <span class="key">,</span><span class="key">.</span><span class="key">/</span><span class="key">;</span><span class="key">:</span><span class="key">(</span><span class="key">)</span>
+                <span class="key">_</span><span class="key">`</span><span class="key">~</span><span class="key">|</span><span class="key">\</span>
+            </div>
+            <div class="row">
+                <span class="key caps">Caps</span>
+                <span class="key">A</span><span class="key">S</span><span class="key">D</span><span class="key">F</span><span class="key">G</span>
+                <span class="key">H</span><span class="key">J</span><span class="key">K</span><span class="key">L</span><span class="key">;</span><span class="key">:</span>
+                <span class="key">(</span><span class="key">)</span><span class="key">_</span><span class="key">`</span><span class="key">~</span><span class="key">|</span><span class="key">\</span>
+            </div>
+            <div class="row">
+                <span class="key shift">Shift</span>
+                <span class="key">Z</span><span class="key">X</span><span class="key">C</span><span class="key">V</span><span class="key">B</span>
+                <span class="key">N</span><span class="key">M</span><span class="key">,</span><span class="key">.</span><span class="key">/</span><span class="key">;</span><span class="key">:</span>
+                <span class="key">(</span><span class="key">)</span><span class="key">_</span><span class="key">`</span><span class="key">~</span><span class="key">|</span><span class="key">\</span>
+            </div>
+            <div class="row">
+                <span class="key fn">Fn</span>
+                <span class="key ctrl">Ctrl</span>
+                <span class="key alt">Alt</span>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 Gofile Clone. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>
