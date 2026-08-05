@@ -1,4 +1,4 @@
-// Configuration - ប្តូរ WORKER_URL ទៅជា URL Worker របស់អ្នកក្រោយដំឡើង
+
 const WORKER_URL = 'https://goflie-1v.suvantha27.workers.dev/'; 
 
 let currentUser = null;
