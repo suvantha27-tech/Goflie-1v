@@ -1,0 +1,22 @@
+-- schema.sql
+DROP TABLE IF EXISTS users;
+CREATE TABLE users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT UNIQUE NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+DROP TABLE IF EXISTS files;
+CREATE TABLE files (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    name TEXT NOT NULL,
+    key TEXT NOT NULL,
+    size INTEGER NOT NULL,
+    mime_type TEXT,
+    uploaded_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- Optional: Insert a guest user
+INSERT INTO users (username) VALUES ('guest');
