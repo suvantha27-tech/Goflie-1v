@@ -1,3 +1,106 @@
+// Configuration - ប្តូរ WORKER_URL ទៅជា URL Worker របស់អ្នកក្រោយដំឡើង
+const WORKER_URL = 'https://goflie-1v.suvantha27.workers.dev/'; 
+
+let currentUser = null;
+
+document.addEventListener('DOMContentLoaded', () => {
+    // On-Screen Keyboard Logic
+    let activeInput = null;
+    document.querySelectorAll('input').forEach(inp => {
+        inp.addEventListener('focus', () => activeInput = inp);
+        inp.addEventListener('blur', () => activeInput = null);
+    });
+    document.querySelectorAll('.key').forEach(key => {
+        key.addEventListener('click', (e) => {
+            if (!activeInput) return;
+            let char = e.target.innerText.trim();
+            if (char === 'Esc') { activeInput.value = ''; return; }
+            if (['Tab','Caps','Shift','Fn','Ctrl','Alt'].includes(char)) return;
+            activeInput.value += char;
+            activeInput.dispatchEvent(new Event('input'));
+        });
+    });
+
+    // Auth Button
+    document.getElementById('authBtn').addEventListener('click', (e) => {
+        e.preventDefault();
+        if (currentUser) {
+            logout();
+        } else {
+            const username = prompt('Enter username (or "guest" for guest mode):');
+            if (username) login(username);
+        }
+    });
+
+    document.getElementById('getStartedBtn').addEventListener('click', (e) => {
+        e.preventDefault();
+        if (!currentUser) {
+            const username = prompt('Enter username (or "guest" for guest mode):');
+            if (username) login(username);
+        }
+    });
+
+    // Landing Drop Zone
+    const landingZone = document.getElementById('landingDropZone');
+    const landingInput = document.getElementById('landingFileInput');
+    if (landingZone && landingInput) {
+        landingZone.addEventListener('click', () => landingInput.click());
+        landingZone.addEventListener('dragover', e => e.preventDefault());
+        landingZone.addEventListener('drop', e => {
+            e.preventDefault();
+            if (!currentUser) return alert('Please login first!');
+            const files = e.dataTransfer.files;
+            if (files.length) uploadFiles(files);
+        });
+        landingInput.addEventListener('change', () => {
+            if (!currentUser) return alert('Please login first!');
+            if (landingInput.files.length) uploadFiles(landingInput.files);
+            landingInput.value = '';
+        });
+    }
+
+    // Dashboard Drop Zone
+    const dashZone = document.getElementById('dashDropZone');
+    const dashInput = document.getElementById('dashFileInput');
+    if (dashZone && dashInput) {
+        dashZone.addEventListener('click', () => dashInput.click());
+        dashZone.addEventListener('dragover', e => e.preventDefault());
+        dashZone.addEventListener('drop', e => {
+            e.preventDefault();
+            if (!currentUser) return alert('Please login!');
+            const files = e.dataTransfer.files;
+            if (files.length) uploadFiles(files);
+        });
+        dashInput.addEventListener('change', () => {
+            if (!currentUser) return alert('Please login!');
+            if (dashInput.files.length) uploadFiles(dashInput.files);
+            dashInput.value = '';
+        });
+    }
+
+    document.getElementById('logoutBtn')?.addEventListener('click', logout);
+
+    // Check session on load
+    const savedUser = localStorage.getItem('gofile_user');
+    if (savedUser) {
+        login(savedUser, true);
+    }
+});
+
+async function login(username, silent = false) {
+    try {
+        const res = await fetch(`${WORKER_URL}/auth`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username })
+        });
+        const data = await res.json();
+        if (data.success) {
+            currentUser = data.user;
+            localStorage.setItem('gofile_user', currentUser.username);
+            document.getElementById('userDisplay').innerText = currentUser.username;
+            document.getElementById('authBtn').innerText = 'Logout';
+            document.
 getElementById('dashboardSection').style.display = 'block';
             if (!silent) alert(`Welcome ${currentUser.username}!`);
             fetchFiles();
