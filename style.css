@@ -1,0 +1,178 @@
+// Configuration - ប្តូរ WORKER_URL ទៅជា URL Worker របស់អ្នកក្រោយដំឡើង
+const WORKER_URL = 'https://gofile-worker.your-username.workers.dev'; 
+
+let currentUser = null;
+
+document.addEventListener('DOMContentLoaded', () => {
+    // On-Screen Keyboard Logic
+    let activeInput = null;
+    document.querySelectorAll('input').forEach(inp => {
+        inp.addEventListener('focus', () => activeInput = inp);
+        inp.addEventListener('blur', () => activeInput = null);
+    });
+    document.querySelectorAll('.key').forEach(key => {
+        key.addEventListener('click', (e) => {
+            if (!activeInput) return;
+            let char = e.target.innerText.trim();
+            if (char === 'Esc') { activeInput.value = ''; return; }
+            if (['Tab','Caps','Shift','Fn','Ctrl','Alt'].includes(char)) return;
+            activeInput.value += char;
+            activeInput.dispatchEvent(new Event('input'));
+        });
+    });
+
+    // Auth Button
+    document.getElementById('authBtn').addEventListener('click', (e) => {
+        e.preventDefault();
+        if (currentUser) {
+            logout();
+        } else {
+            const username = prompt('Enter username (or "guest" for guest mode):');
+            if (username) login(username);
+        }
+    });
+
+    document.getElementById('getStartedBtn').addEventListener('click', (e) => {
+        e.preventDefault();
+        if (!currentUser) {
+            const username = prompt('Enter username (or "guest" for guest mode):');
+            if (username) login(username);
+        }
+    });
+
+    // Landing Drop Zone
+    const landingZone = document.getElementById('landingDropZone');
+    const landingInput = document.getElementById('landingFileInput');
+    if (landingZone && landingInput) {
+        landingZone.addEventListener('click', () => landingInput.click());
+        landingZone.addEventListener('dragover', e => e.preventDefault());
+        landingZone.addEventListener('drop', e => {
+            e.preventDefault();
+            if (!currentUser) return alert('Please login first!');
+            const files = e.dataTransfer.files;
+            if (files.length) uploadFiles(files);
+        });
+        landingInput.addEventListener('change', () => {
+            if (!currentUser) return alert('Please login first!');
+            if (landingInput.files.length) uploadFiles(landingInput.files);
+            landingInput.value = '';
+        });
+    }
+
+    // Dashboard Drop Zone
+    const dashZone = document.getElementById('dashDropZone');
+    const dashInput = document.getElementById('dashFileInput');
+    if (dashZone && dashInput) {
+        dashZone.addEventListener('click', () => dashInput.click());
+        dashZone.addEventListener('dragover', e => e.preventDefault());
+        dashZone.addEventListener('drop', e => {
+            e.preventDefault();
+            if (!currentUser) return alert('Please login!');
+            const files = e.dataTransfer.files;
+            if (files.length) uploadFiles(files);
+        });
+        dashInput.addEventListener('change', () => {
+            if (!currentUser) return alert('Please login!');
+            if (dashInput.files.length) uploadFiles(dashInput.files);
+            dashInput.value = '';
+        });
+    }
+
+    document.getElementById('logoutBtn')?.addEventListener('click', logout);
+
+    // Check session on load
+    const savedUser = localStorage.getItem('gofile_user');
+    if (savedUser) {
+        login(savedUser, true);
+    }
+});
+
+async function login(username, silent = false) {
+    try {
+        const res = await fetch(`${WORKER_URL}/auth`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username })
+        });
+        const data = await res.json();
+        if (data.success) {
+            currentUser = data.user;
+            localStorage.setItem('gofile_user', currentUser.username);
+            document.getElementById('userDisplay').innerText = currentUser.username;
+            document.getElementById('authBtn').innerText = 'Logout';
+            document.
+              getElementById('dashboardSection').style.display = 'block';
+            if (!silent) alert(`Welcome ${currentUser.username}!`);
+            fetchFiles();
+        } else {
+            alert('Login failed');
+        }
+    } catch (e) {
+        console.error(e);
+        alert('Cannot connect to server. Make sure Worker is deployed.');
+    }
+}
+
+function logout() {
+    currentUser = null;
+    localStorage.removeItem('gofile_user');
+    document.getElementById('userDisplay').innerText = 'guest9122398228';
+    document.getElementById('authBtn').innerText = 'Add Account';
+    document.getElementById('dashboardSection').style.display = 'none';
+    document.getElementById('fileTableBody').innerHTML = '';
+}
+
+async function uploadFiles(files) {
+    const progress = document.getElementById('uploadProgress');
+    progress.style.display = 'block';
+    for (let file of files) {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('username', currentUser.username);
+        try {
+            const res = await fetch(`${WORKER_URL}/upload`, { 
+                method: 'POST', 
+                body: formData 
+            });
+            const data = await res.json();
+            if (data.success) {
+                progress.value = 100;
+                fetchFiles();
+            } else alert('Upload failed for ' + file.name + ': ' + data.error);
+        } catch (e) { alert('Error uploading'); }
+        setTimeout(() => { progress.style.display = 'none'; progress.value = 0; }, 1000);
+    }
+}
+
+async function fetchFiles() {
+    if (!currentUser) return;
+    const res = await fetch(`${WORKER_URL}/files?username=${currentUser.username}`);
+    const files = await res.json();
+    const tbody = document.getElementById('fileTableBody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    if (!Array.isArray(files)) return;
+    files.forEach(f => {
+        const tr = document.createElement('tr');
+        const size = (f.size / 1024 / 1024).toFixed(2) + ' MB';
+        const date = new Date(f.uploaded_at).toLocaleDateString();
+        tr.innerHTML = `
+            <td>${f.name}</td>
+            <td>${size}</td>
+            <td>${date}</td>
+            <td>
+                <a href="${WORKER_URL}/download/${f.id}?username=${currentUser.username}" target="_blank">⬇ Download</a>
+                <span class="delete-btn" onclick="deleteFile('${f.id}')">🗑 Delete</span>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+async function deleteFile(id) {
+    if (!confirm('Delete this file?')) return;
+    const res = await fetch(`${WORKER_URL}/delete/${id}?username=${currentUser.username}`, { method: 'DELETE' });
+    const data = await res.json();
+    if (data.success) fetchFiles();
+    else alert('Delete failed');
+}
